@@ -84,3 +84,31 @@ async function saveCustomerToMongoDB(name, email) {
     await client.close();
     }
 }
+
+module.exports.getCustomers= async function(req, res, next){
+    try {
+        await client.connect();
+        //STEP B:  Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        //STEP C: connect to the database "shoppingsite"
+        var db0 = client.db("shoppingsite"); //client.db("shoppingsite");
+        console.log("got shopping site");
+        console.log("db0" + db0.toString());
+
+        //STEP D: grab the customers collection
+        var customersCollection =  db0.collection('customers');
+        console.log("collection is "+ customersCollection.collectionName);
+        console.log(" # documents in it " + await customersCollection.countDocuments());
+
+        const customerListCursor=customersCollection.find().limit(10);
+        const customerList=await customerListCursor.toArray();
+
+        res.render('display', {title:'customerList', customerList})
+    }catch(error){
+        console.error("Not able to get customers")
+    }finally{
+        await client.close();
+    }
+}
